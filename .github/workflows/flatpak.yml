@@ -1,0 +1,246 @@
+on:
+  push:
+name: CI
+jobs:
+  flatpak-prep:
+    name: "Flatpak prep"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64]
+      fail-fast: false
+    steps:
+    - uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: true
+        remove-android: true
+        remove-haskell: true
+        remove-codeql: true
+        root-reserve-mb: 6144
+    - uses: actions/checkout@v4
+      with: 
+        submodules: "true"
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      run: |
+        sudo apt install -y --no-install-recommends flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.freedesktop.Platform/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk.Extension.llvm16/aarch64/23.08
+        sudo apt install -y --no-install-recommends dbus-daemon flatpak-builder git-lfs xvfb ccache zstd libappstream-glib8 polkitd elfutils
+        git config --global protocol.file.allow always
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.3
+      with:
+        bundle: org.telegram.desktop.flatpak
+        manifest-path: org.telegram.desktop.yml
+        cache-key: flatpak-builder-${{ github.sha }}-prep
+        arch: ${{ matrix.arch }}
+        stop-at-module: qtbase
+
+  flatpak-qt1:
+    name: "Flatpak Qt 1"
+    needs: flatpak-prep
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64]
+      fail-fast: false
+    steps:
+    - uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: true
+        remove-android: true
+        remove-haskell: true
+        remove-codeql: true
+        root-reserve-mb: 6144
+    - uses: actions/checkout@v4
+      with: 
+        submodules: "true"
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      run: |
+        sudo apt install -y --no-install-recommends flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.freedesktop.Platform/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk.Extension.llvm16/aarch64/23.08
+        sudo apt install -y --no-install-recommends dbus-daemon flatpak-builder git-lfs xvfb ccache zstd libappstream-glib8 polkitd elfutils
+        git config --global protocol.file.allow always
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.3
+      with:
+        bundle: org.telegram.desktop.flatpak
+        manifest-path: org.telegram.desktop.yml
+        cache-key: flatpak-builder-${{ github.sha }}-qt1
+        arch: ${{ matrix.arch }}
+        stop-at-module: qtdeclarative
+
+  flatpak-qt2:
+    name: "Flatpak Qt 2"
+    needs: flatpak-qt1
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64]
+      fail-fast: false
+    steps:
+    - uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: true
+        remove-android: true
+        remove-haskell: true
+        remove-codeql: true
+        root-reserve-mb: 6144
+    - uses: actions/checkout@v4
+      with: 
+        submodules: "true"
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      run: |
+        sudo apt install -y --no-install-recommends flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.freedesktop.Platform/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk.Extension.llvm16/aarch64/23.08
+        sudo apt install -y --no-install-recommends dbus-daemon flatpak-builder git-lfs xvfb ccache zstd libappstream-glib8 polkitd elfutils
+        git config --global protocol.file.allow always
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.3
+      with:
+        bundle: org.telegram.desktop.flatpak
+        manifest-path: org.telegram.desktop.yml
+        cache-key: flatpak-builder-${{ github.sha }}-qt2
+        arch: ${{ matrix.arch }}
+        stop-at-module: qtwayland
+
+  flatpak-qt3:
+    name: "Flatpak Qt 3"
+    needs: flatpak-qt2
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64]
+      fail-fast: false
+    steps:
+    - uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: true
+        remove-android: true
+        remove-haskell: true
+        remove-codeql: true
+        root-reserve-mb: 6144
+    - uses: actions/checkout@v4
+      with: 
+        submodules: "true"
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      run: |
+        sudo apt install -y --no-install-recommends flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.freedesktop.Platform/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk.Extension.llvm16/aarch64/23.08
+        sudo apt install -y --no-install-recommends dbus-daemon flatpak-builder git-lfs xvfb ccache zstd libappstream-glib8 polkitd elfutils
+        git config --global protocol.file.allow always
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.3
+      with:
+        bundle: org.telegram.desktop.flatpak
+        manifest-path: org.telegram.desktop.yml
+        cache-key: flatpak-builder-${{ github.sha }}-qt3
+        arch: ${{ matrix.arch }}
+        stop-at-module: tg_owt
+
+  flatpak-tgowt:
+    name: "Flatpak Telegram owt"
+    needs: flatpak-qt3
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64]
+      fail-fast: false
+    steps:
+    - uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: true
+        remove-android: true
+        remove-haskell: true
+        remove-codeql: true
+        root-reserve-mb: 6144
+    - uses: actions/checkout@v4
+      with: 
+        submodules: "true"
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      run: |
+        sudo apt install -y --no-install-recommends flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.freedesktop.Platform/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk.Extension.llvm16/aarch64/23.08
+        sudo apt install -y --no-install-recommends dbus-daemon flatpak-builder git-lfs xvfb ccache zstd libappstream-glib8 polkitd elfutils
+        git config --global protocol.file.allow always
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.3
+      with:
+        bundle: org.telegram.desktop.flatpak
+        manifest-path: org.telegram.desktop.yml
+        cache-key: flatpak-builder-${{ github.sha }}-tgowt
+        arch: ${{ matrix.arch }}
+        stop-at-module: telegram-desktop
+
+  flatpak-telegram:
+    name: "Flatpak Telegram"
+    needs: flatpak-tgowt
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+      with: 
+        submodules: "true"
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      run: |
+        sudo apt install -y --no-install-recommends flatpak
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install -y flathub org.freedesktop.Platform/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk/aarch64/23.08
+        sudo flatpak install -y flathub org.freedesktop.Sdk.Extension.llvm16/aarch64/23.08
+        sudo apt install -y --no-install-recommends dbus-daemon flatpak-builder git-lfs xvfb ccache zstd libappstream-glib8 polkitd elfutils
+        git config --global protocol.file.allow always
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.3
+      with:
+        bundle: org.telegram.desktop.flatpak
+        manifest-path: org.telegram.desktop.yml
+        cache-key: flatpak-builder-${{ github.sha }}-tg
+        arch: ${{ matrix.arch }}

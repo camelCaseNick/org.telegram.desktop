@@ -393,6 +393,7 @@ modules:
     builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=None
+      - -DCMAKE_CXX_FLAGS='-O1'
     sources:
       - type: archive
         url: https://download.qt.io/archive/qt/6.7/6.7.0/submodules/qtdeclarative-everywhere-src-6.7.0.tar.xz
@@ -483,8 +484,8 @@ modules:
     build-options:
       arch:
         aarch64:
-          cflags: -g1
-          cxxflags: -g1
+          cflags: -O0 -g0
+          cxxflags: -O0 -g0
     config-opts:
       - -DCMAKE_BUILD_TYPE=None
       - -DTDESKTOP_API_ID=611335
