@@ -1,0 +1,71 @@
+From: Markus Göllnitz <camelcasenick@bewares.it>
+Date: Sun, 7 Apr 2024 18:02:10 +0200
+Subject: [PATCH] TextInputv3: disable when not focussed
+
+Currently, the text input method v3 is always enabled
+when a the client has a surface with focus, regardless of
+whether the input method is supposed to be enabled. That
+should depend on text field focus and is exposed by Qt as
+a flag to the IM state.
+
+Signed-off-by: Markus Göllnitz <camelcasenick@bewares.it>
+---
+diff --git a/src/client/qwaylandtextinputv3.cpp b/src/client/qwaylandtextinputv3.cpp
+--- a/src/client/qwaylandtextinputv3.cpp
++++ b/src/client/qwaylandtextinputv3.cpp
+@@ -51,7 +51,6 @@
+     m_pendingDeleteBeforeText = 0;
+     m_pendingDeleteAfterText = 0;
+ 
+-    enable();
+     updateState(supportedQueries3, update_state_enter);
+ }
+ 
+@@ -207,11 +206,16 @@
+         return;
+ 
+     queries &= supportedQueries3;
+-    bool needsCommit = false;
++    bool inhibitCommit = false;
+ 
+     QInputMethodQueryEvent event(queries);
+     QCoreApplication::sendEvent(QGuiApplication::focusObject(), &event);
+ 
++    if (queries & Qt::ImEnabled)
++        enable();
++    else
++        disable();
++
+     // For some reason, a query for Qt::ImSurroundingText gives an empty string even though it is not.
+     if (!(queries & Qt::ImSurroundingText) && event.value(Qt::ImSurroundingText).toString().isEmpty()) {
+         return;
+@@ -226,7 +230,6 @@
+         if (surfaceRect != m_cursorRect) {
+             set_cursor_rectangle(surfaceRect.x(), surfaceRect.y(), surfaceRect.width(), surfaceRect.height());
+             m_cursorRect = surfaceRect;
+-            needsCommit = true;
+         }
+     }
+ 
+@@ -289,7 +292,7 @@
+             if (m_condReselection) {
+                 qCDebug(qLcQpaWaylandTextInput) << "\"commit\" is disabled when Reselection by changing focus";
+                 m_condReselection = false;
+-                needsCommit = false;
++                inhibitCommit = true;
+ 
+             }
+ 
+@@ -311,10 +314,9 @@
+ 
+             m_contentHint = contentType.hint;
+             m_contentPurpose = contentType.purpose;
+-            needsCommit = true;
+         }
+     }
+ 
+-    if (needsCommit
++    if (!inhibitCommit
+             && (flags == update_state_change || flags == update_state_enter))
+         commit();
+ }
